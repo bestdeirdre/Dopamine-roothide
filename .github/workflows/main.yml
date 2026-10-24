@@ -17,6 +17,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# 授予工作流向 Releases 写入的权限
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-latest
@@ -29,8 +33,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
         with:
-            repository: roothide/Dopamine-roothide
-            submodules: recursive
+          repository: roothide/Dopamine-roothide
+          submodules: recursive
 
       - name: Install Procursus
         uses: dhinakg/procursus-action@main
@@ -110,3 +114,17 @@ jobs:
           path: |
             ${{ github.workspace }}/Application/roothide-Dopamine-${{ env.version }}.tipa
           archive: false
+
+      - name: Release to GitHub
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.version }}
+          name: Dopamine-roothide ${{ env.version }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ github.workspace }}/Application/roothide-Dopamine-${{ env.version }}.ipa
+            ${{ github.workspace }}/Application/roothide-Dopamine-${{ env.version }}.tipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
